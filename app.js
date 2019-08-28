@@ -3,6 +3,8 @@ const fetch = require("node-fetch");
 const config = require("./config");
 const { logger } = require("./logger");
 
+var cachedTemprs = {};
+
 amqp.connect(config.amqpAddress)
     .then(conn => {
         return conn.createChannel().then(ch => {
@@ -19,28 +21,45 @@ amqp.connect(config.amqpAddress)
                 logger.info(`Processing ${data.uuid}`);
 
                 const device = data.device;
+
+                var queueTemprs = (temprs, data) => {
+                    for (const tempr of temprs) {
+                        data.tempr = tempr;
+
+                        const queueName = `${config.oopEndpointsQ}.${tempr.endpointType}`;
+                        ch.publish(
+                            config.endpointsExchangeName,
+                            queueName,
+                            Buffer.from(JSON.stringify(data))
+                        );
+                    }
+                };
+
+                if (device.id in cachedTemprs) {
+                    var temprs = cachedTemprs[device.id];
+
+                    if (new Date().getTime() < temprs.expires) {
+                        queueTemprs(temprs.data, data);
+                        ch.ack(message);
+
+                        return;
+                    }
+                }
+
                 fetch(`${config.oopCoreApiUrl}/devices/${device.id}/temprs`, {
                     headers: { "X-Core-Token": config.oopCoreToken }
                 })
-                    .then(res => {
-                        return res.json();
-                    })
+                    .then(res => res.json())
                     .then(json => {
-                        for (const tempr of json) {
-                            data.tempr = tempr;
-                            const queueName = `${config.oopEndpointsQ}.${tempr.endpointType}`;
-                            ch.publish(
-                                config.endpointsExchangeName,
-                                queueName,
-                                Buffer.from(JSON.stringify(data))
-                            );
+                        queueTemprs(json.data, data);
+
+                        if (json.ttl) {
+                            json.expires = new Date().getTime() + json.ttl;
+                            cachedTemprs[device.id] = json;
                         }
                     })
-                    .catch(err => {
-                        logger.error(err);
-                    });
-
-                ch.ack(message);
+                    .then(() => ch.ack(message))
+                    .catch(err => logger.error(err));
             });
         });
     })
