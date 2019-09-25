@@ -1,7 +1,5 @@
 const oop = require("oop-node-common");
 const config = require("./config");
-const oop = require("oop-node-common");
-const config = require("./config");
 const main = require("./main");
 
 const MessageBroker = oop.MessageBroker;
