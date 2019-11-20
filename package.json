@@ -9,11 +9,8 @@
     "lint": "eslint --fix ./**/*.js"
   },
   "dependencies": {
-    "amqplib": "^0.5.5",
-    "dotenv": "^8.0.0",
     "node-fetch": "^2.6.0",
-    "oop-node-common": "https://github.com/open-interop/oop-node-common#develop",
-    "winston": "^3.2.1"
+    "oop-node-common": "https://github.com/open-interop/oop-node-common#develop"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^8.1.0",
