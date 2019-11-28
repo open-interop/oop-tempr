@@ -1,57 +1,38 @@
 # oop-tempr
 
-Fetches temprs for the device associated with an authenticated message.
+This is the tempr fetching service for Open Interop.
 
-## Fields the tempr has access to
+Authenticated messages are consumed and then core is queried for all temprs associated with the given device.
 
-```javascript
-{
-    uuid: 'add28426-8839-4c41-b0fa-91b5d0720caa',
-    message: {
-        path: '/',
-        query: {"q": "value"},
-        method: 'GET',
-        ip: '::ffff:127.0.0.1',
-        body: {},
-        headers: {
-            host: 'localhost:3000',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0',
-            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'accept-language': 'en-US,en;q=0.5',
-            'accept-encoding': 'gzip, deflate',
-            dnt: '1',
-            connection: 'keep-alive',
-            'upgrade-insecure-requests': '1',
-            'cache-control': 'max-age=0'
-        },
-        hostname: 'localhost',
-        protocol: 'http'
-    },
-    device: {
-        id: 5,
-        hostname: 'customer.oop.example',
-        authentication: { path: '/' }
-    },
-    tempr: {
-        endpointType: 'http',
-        deviceId: '5',
-        deviceTemprId: 1,
-        queueResponse: true,
-        template: {
-            host: 'localhost',
-            port: 443,
-            path: '/test/path/here',
-            requestMethod: 'POST',
-            headers: [],
-            body: '{"message": "here"}',
-            protocol: 'https'
-        }
-    }
-}
-```
+Messages are then dispatched for rendering using the `oop-renderer` service.
 
+## Installation
 
-# License
+- Ensure node is installed with version at least `10.16.2` LTS.
+- Install `yarn` if necessary (`npm install -g yarn`).
+- Run `yarn install` to install the node dependencies.
+- Once everything is installed the service can be started with `yarn start`.
+
+## Configuration
+
+- `OOP_AMQP_ADDRESS`: The address of the AMQP messaging service.
+- `OOP_EXCHANGE_NAME`: The message exchange for Open Interop.
+- `OOP_ERROR_EXCHANGE_NAME`:  The exchange errors will be published to.
+- `OOP_JSON_ERROR_Q`: The queue JSON decode messages will be published to.
+- `OOP_TEMPR_INPUT_Q`: The queue this service will consume messages from.
+- `OOP_TEMPR_OUTPUT_Q`:  The queue this service will publish to.
+- `OOP_CORE_API_URL`: The API URL for core which will be used to request temprs from.
+- `OOP_CORE_TOKEN`: The API token for core.
+
+## Testing
+
+`yarn test` to run the tests and generate a coverage report.
+
+## Contributing
+
+We welcome help from the community, please read the [Contributing guide](https://github.com/open-interop/oop-guidelines/blob/master/CONTRIBUTING.md) and [Community guidelines](https://github.com/open-interop/oop-guidelines/blob/master/CODE_OF_CONDUCT.md).
+
+## License
 
 Copyright (C) 2019 Blue Frontier IT Ltd
 
