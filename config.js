@@ -1,9 +1,10 @@
-const dotenv = require("dotenv");
+const oop = require("oop-node-common");
 
-dotenv.config();
-
-module.exports = {
-    amqpAddress: process.env.AMQP_ADDRESS,
-    exchangeName: process.env.EXCHANGE_NAME,
-    translatedMessageQ: process.env.TRANSLATED_MESSAGE_Q
-};
+module.exports = new oop.Config({
+    amqpAddress: "OOP_AMQP_ADDRESS",
+    exchangeName: "OOP_EXCHANGE_NAME",
+    temprInputQ: "OOP_TEMPR_INPUT_Q",
+    temprOutputQ: "OOP_TEMPR_OUTPUT_Q",
+    oopCoreApiUrl: "OOP_CORE_API_URL",
+    oopCoreToken: "OOP_CORE_TOKEN",
+});

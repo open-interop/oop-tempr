@@ -1,6 +1,11 @@
 const winston = require("winston");
 
-const consoleTransport = new winston.transports.Console();
+const consoleTransport = new winston.transports.Console({
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    )
+});
 const myWinstonOptions = {
     transports: [consoleTransport]
 };
