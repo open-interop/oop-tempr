@@ -17,12 +17,13 @@ module.exports = (broker, config, logger) => {
 
         var queueTemprs = (temprs, data) => {
             for (const tempr of temprs) {
-                data.tempr = tempr;
+                let toForward = {...data};
+                toForward.tempr = tempr;
 
                 broker.publish(
                     config.exchangeName,
                     config.temprOutputQ,
-                    data
+                    toForward
                 );
             }
         };
