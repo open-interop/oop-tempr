@@ -70,7 +70,8 @@ test("temprs get queued", t => {
                         uuid: "000000-0000-0000-00000000",
                         message: {},
                         device: {
-                            id: 1
+                            id: 1,
+                            temprUrl: "http://localhost/devices/1/temprs"
                         }
                     }
                 });
@@ -150,7 +151,8 @@ test("temprs get cached", t => {
                         uuid: "000000-0000-0000-00000000",
                         message: {},
                         device: {
-                            id: 1
+                            id: 1,
+                            temprUrl: "http://localhost/devices/1/temprs"
                         }
                     }
                 });
@@ -175,7 +177,9 @@ test("temprs get cached", t => {
                                     uuid: "000000-0000-0000-00000001",
                                     message: {},
                                     device: {
-                                        id: 1
+                                        id: 1,
+                                        temprUrl:
+                                            "http://localhost/devices/1/temprs"
                                     }
                                 }
                             }),
@@ -197,7 +201,7 @@ test("temprs get cached", t => {
     });
 });
 
-test("temprs cach expires", t => {
+test("temprs cache expires", t => {
     t.plan(3);
 
     return new Promise((resolve, reject) => {
@@ -245,7 +249,8 @@ test("temprs cach expires", t => {
                         uuid: "000000-0000-0000-00000000",
                         message: {},
                         device: {
-                            id: 1
+                            id: 1,
+                            temprUrl: "http://localhost/devices/1/temprs"
                         }
                     }
                 });
@@ -270,7 +275,9 @@ test("temprs cach expires", t => {
                                     uuid: "000000-0000-0000-00000001",
                                     message: {},
                                     device: {
-                                        id: 1
+                                        id: 1,
+                                        temprUrl:
+                                            "http://localhost/devices/1/temprs"
                                     }
                                 }
                             }),
