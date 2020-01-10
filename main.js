@@ -1,19 +1,23 @@
 const fetch = require("node-fetch");
 
-var cachedTemprs = {};
+var cachedTemprs = {"device": {}, "schedule": {}};
 
 module.exports = (broker, config, logger) => {
     broker.consume(config.temprInputQ, message => {
         const data = message.content;
 
-        if (!("message" in data && "device" in data)) {
-            logger.error(`Error in message, badly formatted?`);
-            return;
-        }
-
         logger.info(`Getting temprs for ${data.uuid}`);
 
-        const device = data.device;
+        let source;
+        let type;
+
+        if ("device" in data) {
+            source = data.device;
+            type = "device";
+        } else {
+            source = data.schedule
+            type = "schedule";
+        }
 
         var queueTemprs = (temprs, data) => {
             for (const tempr of temprs) {
@@ -28,8 +32,8 @@ module.exports = (broker, config, logger) => {
             }
         };
 
-        if (device.id in cachedTemprs) {
-            var temprs = cachedTemprs[device.id];
+        if (source.id in cachedTemprs[type]) {
+            var temprs = cachedTemprs[type][source.id];
 
             if (new Date().getTime() < temprs.expires) {
                 queueTemprs(temprs.data, data);
@@ -37,7 +41,7 @@ module.exports = (broker, config, logger) => {
             }
         }
 
-        fetch(`${config.oopCoreApiUrl}/devices/${device.id}/temprs`, {
+        fetch(source.temprUrl, {
             headers: { "X-Core-Token": config.oopCoreToken }
         })
             .then(res => res.json())
@@ -46,7 +50,7 @@ module.exports = (broker, config, logger) => {
 
                 if (json.ttl) {
                     json.expires = new Date().getTime() + json.ttl;
-                    cachedTemprs[device.id] = json;
+                    cachedTemprs[type][source.id] = json;
                 }
             })
             .catch(err => console.error(err));
