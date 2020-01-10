@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 
-var cachedTemprs = {"device": {}, "schedule": {}};
+var cachedTemprs = { device: {}, schedule: {} };
 
 module.exports = (broker, config, logger) => {
     broker.consume(config.temprInputQ, message => {
@@ -15,13 +15,13 @@ module.exports = (broker, config, logger) => {
             source = data.device;
             type = "device";
         } else {
-            source = data.schedule
+            source = data.schedule;
             type = "schedule";
         }
 
         var queueTemprs = (temprs, data) => {
             for (const tempr of temprs) {
-                let toForward = {...data};
+                const toForward = { ...data };
                 toForward.tempr = tempr;
 
                 broker.publish(
