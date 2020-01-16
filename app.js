@@ -9,8 +9,4 @@ process.on("unhandledRejection", error => {
     process.exit(1);
 });
 
-main(
-    new MessageBroker(config.amqpAddress),
-    config,
-    oop.logger
-);
+main(new MessageBroker(config.amqpAddress), config, oop.logger);
