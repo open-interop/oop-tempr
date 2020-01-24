@@ -6,5 +6,5 @@ module.exports = new oop.Config({
     temprInputQ: "OOP_TEMPR_INPUT_Q",
     temprOutputQ: "OOP_TEMPR_OUTPUT_Q",
     oopCoreApiUrl: "OOP_CORE_API_URL",
-    oopCoreToken: "OOP_CORE_TOKEN",
+    oopCoreToken: "OOP_CORE_TOKEN"
 });
