@@ -41,7 +41,7 @@ module.exports = (broker, config, logger) => {
             }
         }
 
-        fetch(source.temprUrl, {
+        fetch(source.temprUrl || source.tempr_url, {
             headers: { "X-Core-Token": config.oopCoreToken }
         })
             .then(res => res.json())
