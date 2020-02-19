@@ -5,7 +5,7 @@ const currentRequests = {};
 
 const makeRequest = (url, config) => {
     if (!(url in currentRequests)) {
-        currentRequests[url] = fetch(source.temprUrl || source.tempr_url, {
+        currentRequests[url] = fetch(url, {
             headers: { "X-Core-Token": config.oopCoreToken }
         })
             .then(res => {
