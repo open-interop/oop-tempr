@@ -1,6 +1,24 @@
 const fetch = require("node-fetch");
 
-var cachedTemprs = { device: {}, schedule: {} };
+const cachedTemprs = { device: {}, schedule: {} };
+const currentRequests = {};
+
+const makeRequest = (url, config) => {
+    if (!(url in currentRequests)) {
+        currentRequests[url] = fetch(source.temprUrl || source.tempr_url, {
+            headers: { "X-Core-Token": config.oopCoreToken }
+        })
+            .then(res => {
+                setTimeout(() => {
+                    delete currentRequests[url];
+                }, 0);
+
+                return res.json();
+            });
+    }
+
+    return currentRequests[url];
+};
 
 module.exports = (broker, config, logger) => {
     broker.consume(config.temprInputQ, message => {
@@ -41,10 +59,7 @@ module.exports = (broker, config, logger) => {
             }
         }
 
-        fetch(source.temprUrl || source.tempr_url, {
-            headers: { "X-Core-Token": config.oopCoreToken }
-        })
-            .then(res => res.json())
+        makeRequest(source.temprUrl || source.tempr_url, config)
             .then(json => {
                 queueTemprs(json.data, data);
 
