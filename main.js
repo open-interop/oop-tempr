@@ -8,12 +8,14 @@ const makeRequest = (url, config) => {
         currentRequests[url] = fetch(url, {
             headers: { "X-Core-Token": config.oopCoreToken }
         })
-            .then(res => {
+            .then(async res => {
                 setTimeout(() => {
                     delete currentRequests[url];
                 }, 0);
 
-                return res.json();
+                const json = await res.json();
+
+                return json;
             });
     }
 
