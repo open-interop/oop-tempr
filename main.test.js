@@ -98,7 +98,7 @@ test("temprs get queued", t => {
                 oopCoreApiUrl: "http://localhost",
                 oopCoreToken: "foobar"
             },
-            console
+            { info: () => {}, error: () => {} }
         );
     });
 });
@@ -196,7 +196,7 @@ test("temprs get cached", t => {
                 oopCoreApiUrl: "http://localhost",
                 oopCoreToken: "foobar"
             },
-            console
+            { info: () => {}, error: () => {} }
         );
     });
 });
@@ -294,7 +294,51 @@ test("temprs cache expires", t => {
                 oopCoreApiUrl: "http://localhost",
                 oopCoreToken: "foobar"
             },
-            console
+            { info: () => {}, error: () => {} }
+        );
+    });
+});
+
+test("no concurrent requests", t => {
+    t.plan(1);
+
+    return new Promise((resolve, reject) => {
+        const sandbox = fetchMock.sandbox();
+        const main = proxyrequire("./main", { "node-fetch": sandbox });
+        const delay = new Promise(resolve => setTimeout(resolve, 500));
+        sandbox.mock(
+            "*",
+            delay.then(() => t.is(sandbox.calls().length, 1))
+                .then(resolve)
+                .then(() => '{"ttl": 100, "data": []}')
+        );
+
+        const broker = {
+            consume: (queue, _callback) => {
+                for (let i = 0; i < 10; ++i) {
+                    _callback({
+                        content: {
+                            uuid: "000000-0000-0000-00000000",
+                            message: {},
+                            device: {
+                                id: 1,
+                                temprUrl: "http://localhost/devices/1/temprs"
+                            }
+                        }
+                    });
+                }
+            },
+            publish: (exchange, queue, message) => {}
+        };
+
+        main(
+            broker,
+            {
+                temprInputQ: "test",
+                oopCoreApiUrl: "http://localhost",
+                oopCoreToken: "foobar"
+            },
+            { info: () => {}, error: () => {} }
         );
     });
 });
