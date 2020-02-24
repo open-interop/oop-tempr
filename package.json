@@ -1,6 +1,6 @@
 {
   "name": "oop-tempr",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Templating service for OpenInterop",
   "main": "app.js",
   "license": "AGPL-3.0",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "node-fetch": "^2.6.0",
-    "oop-node-common": "^1.0.1"
+    "oop-node-common": "1.0.2"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^8.1.0",
