@@ -1,6 +1,6 @@
 {
   "name": "oop-tempr",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Templating service for OpenInterop",
   "main": "app.js",
   "license": "AGPL-3.0",
