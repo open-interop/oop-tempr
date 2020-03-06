@@ -8,11 +8,12 @@ function makeRequest(url, config) {
         currentRequests[url] = fetch(url, {
             headers: { "X-Core-Token": config.oopCoreToken }
         }).then(async res => {
+            const json = await res.json();
+
             setTimeout(function() {
                 delete currentRequests[url];
             }, 0);
 
-            const json = await res.json();
 
             return json;
         });
@@ -31,8 +32,6 @@ function queueTemprs(broker, config, temprs, data) {
 }
 
 module.exports = (broker, config, logger) => {
-
-
     const consumeMessage = function(message) {
         const data = message.content;
         const currentTime = new Date().getTime();
@@ -58,7 +57,7 @@ module.exports = (broker, config, logger) => {
             }
         }
 
-        makeRequest(temprUrl, config)
+        return makeRequest(temprUrl, config)
             .then(function(json) {
                 if (json.ttl) {
                     json.expires = currentTime + json.ttl;
@@ -66,8 +65,7 @@ module.exports = (broker, config, logger) => {
                 }
 
                 queueTemprs(broker, config, json.data, data);
-            })
-            .catch(err => console.error(err));
+            });
     }
 
     broker.consume(config.temprInputQ, consumeMessage);
