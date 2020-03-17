@@ -22,10 +22,11 @@ function makeRequest(url, config) {
     return currentRequests[url];
 }
 
-function queueTemprs(broker, config, temprs, data) {
+function queueTemprs(broker, config, temprs, layers, data) {
     for (const tempr of temprs) {
         const toForward = { ...data };
         toForward.tempr = tempr;
+        toForward.layers = layers;
 
         broker.publish(config.exchangeName, config.temprOutputQ, toForward);
     }
@@ -52,7 +53,7 @@ module.exports = (broker, config, logger) => {
             var temprs = cachedTemprs[temprUrl];
 
             if (currentTime < temprs.expires) {
-                queueTemprs(broker, config, temprs.data, data);
+                queueTemprs(broker, config, temprs.data, temprs.layers, data);
                 return;
             }
         }
@@ -64,7 +65,7 @@ module.exports = (broker, config, logger) => {
                     cachedTemprs[temprUrl] = json;
                 }
 
-                queueTemprs(broker, config, json.data, data);
+                queueTemprs(broker, config, json.data, json.layers, data);
             });
     }
 
