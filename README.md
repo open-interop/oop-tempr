@@ -6,6 +6,28 @@ Authenticated messages are consumed and then core is queried for all temprs asso
 
 Messages are then dispatched for rendering using the `oop-renderer` service.
 
+## Temprs
+
+A tempr is an object containing the following keys:
+
+```json
+{
+    "id": 1,
+    "deviceId": 1,
+    "scheduleId": null,
+    "name": "Human readable name",
+    "endpointType": "http",
+    "queueRequest": true,
+    "queueResponse": true,
+    "layers" : [1, ...],
+    "template": { ... }
+}
+```
+
+The `template` key is then used in [oop-renderer](https://github.com/open-interop/oop-renderer) to create the rendered tempr.
+The keys present in the `template` object are defined by the `endpointType`. see: [oop-endpoints-http](https://github.com/open-interop/oop-endpoints-http).
+
+
 ## Installation
 
 - Ensure node is installed with version at least `10.16.2` LTS.
