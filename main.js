@@ -14,7 +14,6 @@ function makeRequest(url, config) {
                 delete currentRequests[url];
             }, 0);
 
-
             return json;
         });
     }
@@ -23,6 +22,10 @@ function makeRequest(url, config) {
 }
 
 function queueTemprs(broker, config, temprs, layers, data) {
+    if (!(temprs instanceof Array)) {
+        temprs = [temprs];
+    }
+
     for (const tempr of temprs) {
         const toForward = { ...data };
         toForward.tempr = tempr;
@@ -39,15 +42,17 @@ module.exports = (broker, config, logger) => {
 
         logger.info(`Getting temprs for ${data.uuid}`);
 
-        let source;
+        let temprUrl;
 
-        if ("device" in data) {
-            source = data.device;
+        if (data.tempr) {
+            temprUrl = data.tempr.temprUrl;
+        } else if (data.device) {
+            temprUrl = data.device.temprUrl || data.device.tempr_url;
+        } else if (data.schedule) {
+            temprUrl = data.schedule.temprUrl || data.schedule.tempr_url;
         } else {
-            source = data.schedule;
+            throw new Error("No tempr source available");
         }
-
-        const temprUrl = source.temprUrl || source.tempr_url;
 
         if (cachedTemprs[temprUrl]) {
             var temprs = cachedTemprs[temprUrl];
@@ -58,16 +63,15 @@ module.exports = (broker, config, logger) => {
             }
         }
 
-        return makeRequest(temprUrl, config)
-            .then(function(json) {
-                if (json.ttl) {
-                    json.expires = currentTime + json.ttl;
-                    cachedTemprs[temprUrl] = json;
-                }
+        return makeRequest(temprUrl, config).then(function(json) {
+            if (json.ttl) {
+                json.expires = currentTime + json.ttl;
+                cachedTemprs[temprUrl] = json;
+            }
 
-                queueTemprs(broker, config, json.data, json.layers, data);
-            });
-    }
+            queueTemprs(broker, config, json.data, json.layers, data);
+        });
+    };
 
     broker.consume(config.temprInputQ, consumeMessage);
 };

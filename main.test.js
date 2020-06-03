@@ -308,7 +308,8 @@ test("no concurrent requests", t => {
         const delay = new Promise(resolve => setTimeout(resolve, 500));
         sandbox.mock(
             "*",
-            delay.then(() => t.is(sandbox.calls().length, 1))
+            delay
+                .then(() => t.is(sandbox.calls().length, 1))
                 .then(resolve)
                 .then(() => '{"ttl": 100, "data": []}')
         );
