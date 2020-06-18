@@ -44,14 +44,26 @@ module.exports = (broker, config, logger) => {
 
         let temprUrl;
 
-        if (data.tempr) {
-            temprUrl = data.tempr.temprUrl;
+        if (data.tempr && data.tempr.temprUrl) {
+            temprUrl = String(data.tempr.temprUrl);
         } else if (data.device) {
-            temprUrl = data.device.temprUrl || data.device.tempr_url;
+            temprUrl = String(data.device.temprUrl || data.device.tempr_url);
         } else if (data.schedule) {
-            temprUrl = data.schedule.temprUrl || data.schedule.tempr_url;
-        } else {
-            throw new Error("No tempr source available");
+            temprUrl = String(
+                data.schedule.temprUrl || data.schedule.tempr_url
+            );
+        }
+
+        if (!temprUrl) {
+            logger.error(
+                `No available tempr URL for ${data.uuid}, nothing to do.`
+            );
+            return;
+        }
+
+        if (!temprUrl.match(/^https?:\/\//)) {
+            logger.error(`Tempr URL for ${data.uuid} not formatted correctly.`);
+            return;
         }
 
         if (cachedTemprs[temprUrl]) {
