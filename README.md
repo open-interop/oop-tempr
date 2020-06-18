@@ -56,7 +56,7 @@ We welcome help from the community, please read the [Contributing guide](https:/
 
 ## License
 
-Copyright (C) 2019 Blue Frontier IT Ltd
+Copyright (C) 2020 The Software for Health Foundation Limited <https://softwareforhealth.org/>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
