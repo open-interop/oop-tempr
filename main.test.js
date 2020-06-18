@@ -343,3 +343,37 @@ test("no concurrent requests", t => {
         );
     });
 });
+
+test("No tempr set gets discarded", t => {
+    t.plan(1);
+
+    const main = require("./main");
+
+    return new Promise((resolve, reject) => {
+        const broker = {
+            consume: async (queue, _callback) => {
+                await _callback({
+                    content: {
+                        uuid: "000000-0000-0000-00000000",
+                        message: {}
+                    }
+                });
+
+                t.pass();
+
+                resolve();
+            },
+            publish: (exchange, queue, message) => {}
+        };
+
+        main(
+            broker,
+            {
+                temprInputQ: "test",
+                oopCoreApiUrl: "http://localhost",
+                oopCoreToken: "foobar"
+            },
+            { info: () => {}, error: () => {} }
+        );
+    });
+});
