@@ -2,10 +2,10 @@
   "name": "oop-tempr",
   "version": "1.0.8",
   "description": "Templating service for OpenInterop",
-  "main": "app.js",
+  "main": "main.js",
   "license": "AGPL-3.0",
   "scripts": {
-    "start": "node app",
+    "start": "node app.js",
     "test": "ava",
     "lint": "eslint --fix ./**/*.js",
     "lint-test": "eslint ./**/*.js"
