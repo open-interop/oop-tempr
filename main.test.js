@@ -103,200 +103,112 @@ test("temprs get queued", t => {
     });
 });
 
-test("temprs get cached", t => {
+const testCaching = async (ttl, timeout) => {
+    const published = [];
+    let callback;
+    const broker = {
+        consume: (queue, consumer) => {
+            callback = consumer;
+        },
+        publish: (exchange, queue, data) => {
+            published.push(data);
+        }
+    };
+
+    const data = { ttl, data: [{ id: 1 }] };
+
+    const sandbox = fetchMock.sandbox();
+    const main = proxyrequire("./main", { "node-fetch": sandbox });
+
+    sandbox.mock("*", JSON.stringify(data));
+
+    await main(
+        broker,
+        {
+            temprInputQ: "test",
+            oopCoreApiUrl: "http://localhost",
+            oopCoreToken: "foobar"
+        },
+        { info: () => {}, warn: () => {}, error: () => {} }
+    );
+
+    await callback({
+        content: {
+            uuid: "000000-0000-0000-00000000",
+            message: {},
+            device: {
+                id: 1,
+                temprUrl: "http://localhost/devices/1/temprs"
+            }
+        }
+    });
+
+    await new Promise(resolve => setTimeout(resolve, timeout));
+
+    await callback({
+        content: {
+            uuid: "000000-0000-0000-00000000",
+            message: {},
+            device: {
+                id: 1,
+                temprUrl: "http://localhost/devices/1/temprs"
+            }
+        }
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 5));
+
+    return { published, sandbox };
+};
+
+test("temprs get cached", async t => {
     t.plan(3);
 
-    return new Promise((resolve, reject) => {
-        const data = {
-            ttl: 10000,
-            data: [
-                {
-                    id: 1,
-                    deviceId: 1,
-                    temprId: 3,
-                    endpointType: "http",
-                    queueResponse: true,
-                    template: {
-                        host: "forward-url.com",
-                        port: 443,
-                        path: "/forward/path",
-                        requestMethod: "POST",
-                        protocol: "https",
-                        headers: [
-                            {
-                                "Content-Type": "application/json"
-                            }
-                        ],
-                        body: "first template goes here"
-                    },
-                    createdAt: "2019-08-30T08:59:46.708Z",
-                    updatedAt: "2019-08-30T08:59:46.708Z"
-                }
-            ]
-        };
+    const { published, sandbox } = await testCaching(1000, 5);
 
-        const sandbox = fetchMock.sandbox();
-        const main = proxyrequire("./main", { "node-fetch": sandbox });
-        sandbox.mock("*", JSON.stringify(data));
-
-        let firstPublish = false;
-        let callback;
-
-        const broker = {
-            consume: (queue, _callback) => {
-                callback = _callback;
-
-                callback({
-                    content: {
-                        uuid: "000000-0000-0000-00000000",
-                        message: {},
-                        device: {
-                            id: 1,
-                            temprUrl: "http://localhost/devices/1/temprs"
-                        }
-                    }
-                });
-            },
-            publish: (exchange, queue, message) => {
-                if (firstPublish) {
-                    t.is(sandbox.calls().length, 1);
-                    t.is(
-                        sandbox.lastUrl(),
-                        "http://localhost/devices/1/temprs"
-                    );
-                    t.true(firstPublish.tempr === message.tempr);
-
-                    resolve();
-                } else {
-                    firstPublish = message;
-
-                    setTimeout(
-                        () =>
-                            callback({
-                                content: {
-                                    uuid: "000000-0000-0000-00000001",
-                                    message: {},
-                                    device: {
-                                        id: 1,
-                                        temprUrl:
-                                            "http://localhost/devices/1/temprs"
-                                    }
-                                }
-                            }),
-                        1
-                    );
-                }
-            }
-        };
-
-        main(
-            broker,
-            {
-                temprInputQ: "test",
-                oopCoreApiUrl: "http://localhost",
-                oopCoreToken: "foobar"
-            },
-            { info: () => {}, error: () => {} }
-        );
-    });
+    t.is(sandbox.calls().length, 1);
+    t.is(sandbox.lastUrl(), "http://localhost/devices/1/temprs");
+    t.is(published.length, 2);
 });
 
-test("temprs cache expires", t => {
+test("temprs cache expires", async t => {
     t.plan(3);
 
-    return new Promise((resolve, reject) => {
-        const data = {
-            ttl: 5,
-            data: [
-                {
-                    id: 1,
-                    deviceId: 1,
-                    temprId: 3,
-                    endpointType: "http",
-                    queueResponse: true,
-                    template: {
-                        host: "forward-url.com",
-                        port: 443,
-                        path: "/forward/path",
-                        requestMethod: "POST",
-                        protocol: "https",
-                        headers: [
-                            {
-                                "Content-Type": "application/json"
-                            }
-                        ],
-                        body: "first template goes here"
-                    },
-                    createdAt: "2019-08-30T08:59:46.708Z",
-                    updatedAt: "2019-08-30T08:59:46.708Z"
-                }
-            ]
-        };
+    const { published, sandbox } = await testCaching(1, 20);
 
-        const sandbox = fetchMock.sandbox();
-        const main = proxyrequire("./main", { "node-fetch": sandbox });
-        sandbox.mock("*", JSON.stringify(data));
+    t.is(sandbox.calls().length, 2);
+    t.is(sandbox.lastUrl(), "http://localhost/devices/1/temprs");
+    t.is(published.length, 2);
+});
 
-        let firstPublish = false;
-        let callback;
+test("temprs cache string ttl works", async t => {
+    t.plan(3);
 
-        const broker = {
-            consume: (queue, _callback) => {
-                callback = _callback;
+    const { published, sandbox } = await testCaching("100", 1);
 
-                callback({
-                    content: {
-                        uuid: "000000-0000-0000-00000000",
-                        message: {},
-                        device: {
-                            id: 1,
-                            temprUrl: "http://localhost/devices/1/temprs"
-                        }
-                    }
-                });
-            },
-            publish: (exchange, queue, message) => {
-                if (firstPublish) {
-                    t.is(sandbox.calls().length, 2);
-                    t.is(
-                        sandbox.lastUrl(),
-                        "http://localhost/devices/1/temprs"
-                    );
-                    t.false(firstPublish.tempr === message.tempr);
+    t.is(sandbox.calls().length, 1);
+    t.is(sandbox.lastUrl(), "http://localhost/devices/1/temprs");
+    t.is(published.length, 2);
+});
 
-                    resolve();
-                } else {
-                    firstPublish = message;
+test("temprs cache string ttl times out", async t => {
+    t.plan(3);
 
-                    setTimeout(
-                        () =>
-                            callback({
-                                content: {
-                                    uuid: "000000-0000-0000-00000001",
-                                    message: {},
-                                    device: {
-                                        id: 1,
-                                        temprUrl:
-                                            "http://localhost/devices/1/temprs"
-                                    }
-                                }
-                            }),
-                        10
-                    );
-                }
-            }
-        };
+    const { published, sandbox } = await testCaching("100", 200);
 
-        main(
-            broker,
-            {
-                temprInputQ: "test",
-                oopCoreApiUrl: "http://localhost",
-                oopCoreToken: "foobar"
-            },
-            { info: () => {}, error: () => {} }
-        );
-    });
+    t.is(sandbox.calls().length, 2);
+    t.is(sandbox.lastUrl(), "http://localhost/devices/1/temprs");
+    t.is(published.length, 2);
+});
+
+test("temprs cache NaN ttl discarded", async t => {
+    t.plan(3);
+
+    const { published, sandbox } = await testCaching("whoops", 1);
+
+    t.is(sandbox.calls().length, 2);
+    t.is(sandbox.lastUrl(), "http://localhost/devices/1/temprs");
+    t.is(published.length, 2);
 });
 
 test("no concurrent requests", t => {

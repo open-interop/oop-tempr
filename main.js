@@ -89,8 +89,14 @@ module.exports = (broker, config, logger) => {
 
         return makeRequest(temprUrl, config).then(function(json) {
             if (json.ttl) {
-                json.expires = currentTime + json.ttl;
-                cachedTemprs[temprUrl] = json;
+                const ttl = parseInt(json.ttl);
+
+                if (!isNaN(ttl)) {
+                    json.expires = currentTime + ttl;
+                    cachedTemprs[temprUrl] = json;
+                } else {
+                    logger.warn(`Received NaN ttl: '${json.ttl}', assuming 0.`);
+                }
             }
 
             queueTemprs(broker, config, json.data, json.layers, data);
