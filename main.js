@@ -8,6 +8,20 @@ function makeRequest(url, config) {
         currentRequests[url] = fetch(url, {
             headers: { "X-Core-Token": config.oopCoreToken }
         }).then(async res => {
+            if (res.status !== 200) {
+                console.error(`Core returned status: ${res.status}`);
+
+                let errorInfo = null;
+                try {
+                    errorInfo = await res.json();
+                } catch (e) {}
+
+                throw new Error(
+                    `Core returned status: ${res.status}`,
+                    errorInfo
+                );
+            }
+
             const json = await res.json();
 
             setTimeout(function() {
@@ -45,13 +59,11 @@ module.exports = (broker, config, logger) => {
         let temprUrl;
 
         if (data.tempr && data.tempr.temprUrl) {
-            temprUrl = String(data.tempr.temprUrl);
+            temprUrl = data.tempr.temprUrl;
         } else if (data.device) {
-            temprUrl = String(data.device.temprUrl || data.device.tempr_url);
+            temprUrl = data.device.temprUrl || data.device.tempr_url;
         } else if (data.schedule) {
-            temprUrl = String(
-                data.schedule.temprUrl || data.schedule.tempr_url
-            );
+            temprUrl = data.schedule.temprUrl || data.schedule.tempr_url;
         }
 
         if (!temprUrl) {
@@ -77,8 +89,14 @@ module.exports = (broker, config, logger) => {
 
         return makeRequest(temprUrl, config).then(function(json) {
             if (json.ttl) {
-                json.expires = currentTime + json.ttl;
-                cachedTemprs[temprUrl] = json;
+                const ttl = parseInt(json.ttl);
+
+                if (!isNaN(ttl)) {
+                    json.expires = currentTime + ttl;
+                    cachedTemprs[temprUrl] = json;
+                } else {
+                    logger.warn(`Received NaN ttl: '${json.ttl}', assuming 0.`);
+                }
             }
 
             queueTemprs(broker, config, json.data, json.layers, data);
